@@ -155,24 +155,17 @@ Countly.enableCrashReporting = function(){
 Countly.addCrashLog = function(crashLog){
     cordova.exec(Countly.onSuccess,Countly.onError,"CountlyCordova","addCrashLog",[crashLog || ""]);
 };
-Countly.logException = function(exception, nonfatal, segments){
-    var exceptionString = "";
-    for(var i=0,il=exception.length;i<il;i++){
-        exceptionString += "columnNumber: " +exception[i].columnNumber +"\n";
-        exceptionString += "fileName: " +exception[i].fileName +"\n";
-        exceptionString += "functionName: " +exception[i].functionName +"\n";
-        exceptionString += "lineNumber: " +exception[i].lineNumber +"\n";
-    }
-    var args = [];
-    args.push(exceptionString || "");
-    args.push(nonfatal || false);
-    for(var key in segments){
-        args.push(key);
-        args.push(segments.toString());
-    }
-    cordova.exec(Countly.onSuccess,Countly.onError,"CountlyCordova","logException",args);
-};
 
+/**
+ * Log an exception (called crashes in the Countly dashboard).
+ * @param {String} exception A description of the exception. The first line is treated as the title and the rest of the
+ * information can be seperated using newlines (\n). It is recommended to include the stack trace of the exception.
+ * @param {Boolean} isFatal Determines whether the exception should be logged as a fatal or non fatal exception.
+ * @param {Object} [segments] Segments that can be used to log more information about the exception.
+ */
+Countly.logException = function(exception, isFatal, segments) {
+    cordova.exec(Countly.onSuccess, Countly.onError, "CountlyCordova", "logException", [exception, isFatal, segments]);
+};
 
 Countly.enableParameterTamperingProtection = function(salt){
     cordova.exec(Countly.onSuccess,Countly.onError,"CountlyCordova","enableParameterTamperingProtection",[salt.toString() || ""]);

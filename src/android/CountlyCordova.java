@@ -1,5 +1,6 @@
 package ly.count.android.sdk;
 
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,30 +81,14 @@ public class CountlyCordova extends CordovaPlugin {
             Countly.sharedInstance().addCrashLog(record);
             callbackContext.success("addCrashLog success!");
             return true;
-        }else if("logException".equals(action)){
-            String exceptionString = args.getString(0);
-            Exception exception = new Exception(exceptionString);
+        } else if("logException".equals(action)) {
+            Exception exception = new Exception(args.getString(0));
+            Boolean isFatal = args.getBoolean(1);
+            JSONObject segments = args.isNull(2) ? null : args.getJSONObject(2);
 
-            Boolean nonfatal = args.getBoolean(1);
-
-            HashMap<String, String> segments = new HashMap<String, String>();
-            for(int i=2,il=args.length();i<il;i+=2){
-                segments.put(args.getString(i), args.getString(i+1));
-            }
-            segments.put("nonfatal", nonfatal.toString());
-            Countly.sharedInstance().setCustomCrashSegments(segments);
-
-            Countly.sharedInstance().logException(exception);
-            // try{
-            //     throw new Exception(exceptionString);
-            // }catch(Exception exception){
-            //     Countly.sharedInstance().logException(exception);
-            // }
-            callbackContext.success("logException success!");
+            this.logException(exception, isFatal, segments, callbackContext);
             return true;
         }
-
-
         else if ("start".equals(action)) {
             Countly.sharedInstance().onStart(this.cordova.getActivity());
             callbackContext.success("started!");
@@ -327,6 +312,34 @@ public class CountlyCordova extends CordovaPlugin {
         else{
             return false;
         }
-  }
+    }
 
+    private void logException(
+            Exception exception, Boolean isFatal, JSONObject segments,
+            CallbackContext callbackContext) throws JSONException {
+
+        HashMap<String, String> segmentsMap = new HashMap<>();
+
+        if(segments != null) {
+            Iterator <String> segmentsKeys = segments.keys();
+
+            while(segmentsKeys.hasNext()) {
+                String key = segmentsKeys.next();
+
+                segmentsMap.put(key, segments.getString(key));
+            }
+        }
+
+        if(!segmentsMap.isEmpty()) {
+                Countly.sharedInstance().setCustomCrashSegments(segmentsMap);
+        }
+
+        if(isFatal) {
+            Countly.sharedInstance().recordUnhandledException(exception);
+        } else {
+            Countly.sharedInstance().recordHandledException(exception);
+        }
+
+        callbackContext.success();
+    }
 }

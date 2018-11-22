@@ -349,23 +349,25 @@ CountlyConfig* config = nil;
 
 - (void)logException:(CDVInvokedUrlCommand*)command
 {
-    NSString* execption = [command.arguments objectAtIndex:0];
-    NSString* nonfatal = [command.arguments objectAtIndex:1];
-    NSArray *nsException = [execption componentsSeparatedByString:@"\n"];
+    NSString* exceptionDescription = [command.arguments objectAtIndex:0];
+    BOOL isFatal = [[command argumentAtIndex:1] boolValue];
+    NSDictionary* segments = nil;
 
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-
-    for(int i=2,il=(int)command.arguments.count;i<il;i+=2){
-        dict[[command.arguments objectAtIndex:i]] = [command.arguments objectAtIndex:i+1];
+    if(command.arguments.count == 3 && [command.arguments objectAtIndex:2] != [NSNull null]) {
+        segments = [command.arguments objectAtIndex:2];
     }
-    [dict setObject:nonfatal forKey:@"nonfatal"];
 
-    NSException* myException = [NSException exceptionWithName:@"Exception" reason:execption userInfo:dict];
+    NSArray *exceptionReason = [exceptionDescription componentsSeparatedByString:@"\n"];
+    NSException* exception = [NSException exceptionWithName:@"Exception" reason:exceptionDescription userInfo:segments];
 
-    [Countly.sharedInstance recordHandledException:myException withStackTrace: nsException];
+    if(isFatal) {
+        [Countly.sharedInstance recordUnhandledException:exception withStackTrace: exceptionReason];
+    } else {
+        [Countly.sharedInstance recordHandledException:exception withStackTrace: exceptionReason];
+    }
 
     CDVPluginResult* pluginResult = nil;
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"logException!"];
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
