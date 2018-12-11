@@ -394,7 +394,17 @@ NSString* const kCountlyTokenError = @"kCountlyTokenError";
                 [Countly.sharedInstance recordReservedEvent:kCountlyReservedEventPushAction segmentation:@{kCountlyPNKeyNotificationID: notificationID, kCountlyPNKeyActionButtonIndex: @(buttonIndex)}];
             }
 
-            [self openURL:URL];
+            /*
+                The delay is necessary due to the app freezing for around 10 seconds if openURL is called after a user
+                taps on a notification in the foreground. Lower delays like 0.01 causes the app to freeze some of the
+                time.
+
+                https://stackoverflow.com/questions/36257922/ios-9-3-freeze-after-calling-openurl
+                https://stackoverflow.com/questions/19356488/openurl-freezes-app-for-over-10-seconds
+            */
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self openURL:URL];
+            });
         }
     }
 
