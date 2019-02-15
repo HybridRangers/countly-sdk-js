@@ -76,6 +76,8 @@
     <source-file src="src/ios/sdk/CountlyPushNotifications.m" />
     <source-file src="src/ios/sdk/CountlyNotificationService.h" />
     <source-file src="src/ios/sdk/CountlyNotificationService.m" />
+    <source-file src="src/ios/sdk/CountlyRemoteConfig.h" />
+    <source-file src="src/ios/sdk/CountlyRemoteConfig.m" />
 
     <header-file src="src/ios/CountlyCordova.h"/>
     <source-file src="src/ios/CountlyCordova.m"/>
