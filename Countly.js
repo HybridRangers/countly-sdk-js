@@ -9,6 +9,7 @@ Countly = {};
  *   - isTestDevice: Only used for Push Notifications and determines whether the device should be registered
  *     as a test device or production device. Countly allows you to choose which group of devices you
  *      would like to send your push notifications to.
+ *   - enableRemoteConfig: Enables support for Remote Config.
  */
 Countly.init = function(serverUrl, appKey, options) {
     var args = [];
@@ -29,7 +30,7 @@ Countly.init = function(serverUrl, appKey, options) {
 Countly.initMessaging = function(options){
     Countly.projectId = options.projectId;
     Countly.messageMode = options.mode;
-    
+
     var args = [];
     args.push(options.registrationId || "");
     args.push(options.mode || Countly.messagingMode.PRODUCTION);
@@ -235,5 +236,14 @@ Countly.userData.setOnce = function(keyName, setOnce){
     cordova.exec(Countly.onSuccess,Countly.onError,"CountlyCordova","userData_setOnce",[keyName.toString() || "", setOnce.toString() || ""]);
 };
 
+/**
+ * Returns the value of the remote config. All values are downloaded automatically on app start if enableRemoteConfig
+ * is set to `true` on init.
+ * @param {string} key - Key of remote config.
+ * @param {function():string} successCallback
+ */
+Countly.getRemoteConfigValueForKey = function(key, successCallback) {
+    cordova.exec(successCallback, Countly.onError, "CountlyCordova", "getRemoteConfigValueForKey", [key]);
+}
 
 window.Countly = Countly;

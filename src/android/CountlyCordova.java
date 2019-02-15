@@ -1,5 +1,6 @@
 package ly.count.android.sdk;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +19,7 @@ public class CountlyCordova extends CordovaPlugin {
 
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         Context context = this.cordova.getActivity().getApplicationContext();
+
         if ("init".equals(action)) {
             String serverUrl = args.getString(0);
             String appKey = args.getString(1);
@@ -25,18 +27,36 @@ public class CountlyCordova extends CordovaPlugin {
             String deviceId = null;
             DeviceId.Type deviceIdType = DeviceId.Type.OPEN_UDID;
 
+            ArrayList<String> features = new ArrayList<>();
+
+            features.add(Countly.CountlyFeatureNames.sessions);
+            features.add(Countly.CountlyFeatureNames.crashes);
+            features.add(Countly.CountlyFeatureNames.events);
+            features.add(Countly.CountlyFeatureNames.users);
+            features.add(Countly.CountlyFeatureNames.views);
+
+            Countly.sharedInstance().setRequiresConsent(true);
+
             if (!args.isNull(2)) {
                 JSONObject options = args.getJSONObject(2);
 
                 if (options.has("isTestDevice")) {
+                    features.add(Countly.CountlyFeatureNames.push);
                     this.isTestDevice = options.getBoolean("isTestDevice");
                 }
 
                 if (args.length() == 3 && options.has("customDeviceId")) {
                     deviceId = options.getString("customDeviceId");
                 }
+
+                if (options.has("enableRemoteConfig")) {
+                    Countly.sharedInstance().setRemoteConfigAutomaticDownload(
+                            options.getBoolean("enableRemoteConfig"), null);
+                }
             }
 
+            Countly.sharedInstance()
+                    .setConsent(features.toArray(new String[0]), true);
             Countly.sharedInstance()
                     .init(context, serverUrl, appKey, deviceId, deviceIdType);
             Countly.sharedInstance().onStart(this.cordova.getActivity());
@@ -307,6 +327,16 @@ public class CountlyCordova extends CordovaPlugin {
             }
 
             callbackContext.success(Countly.sharedInstance().getDeviceID());
+            return true;
+        } else if ("getRemoteConfigValueForKey".equals(action)){
+            String key = args.getString(0);
+            Object remoteConfigValue = Countly.sharedInstance().getRemoteConfigValueForKey(key);
+
+            if(remoteConfigValue == null) {
+                callbackContext.success();
+            }
+
+            callbackContext.success(remoteConfigValue.toString());
             return true;
         }
         else{

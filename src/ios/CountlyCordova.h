@@ -37,4 +37,6 @@
 - (void)setOptionalParametersForInitialization:(CDVInvokedUrlCommand*)command;
 - (void)demo:(CDVInvokedUrlCommand*)command;
 
+- (void)getRemoteConfigValueForKey:(CDVInvokedUrlCommand*)command;
+
 @end

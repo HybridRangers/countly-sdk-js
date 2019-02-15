@@ -45,6 +45,10 @@ CountlyConfig* config = nil;
             config.forceDeviceIDInitialization = true;
             config.deviceID = [options objectForKey:@"customDeviceId"];
         }
+
+        if ([options objectForKey:@"enableRemoteConfig"]) {
+            config.enableRemoteConfig = [[options objectForKey:@"enableRemoteConfig"] boolValue];
+        }
     }
 
     if (serverurl != nil && [serverurl length] > 0) {
@@ -497,6 +501,15 @@ CountlyConfig* config = nil;
     NSData *tokenByte = [token dataUsingEncoding:NSUTF8StringEncoding];
     CDVPluginResult* pluginResult = nil;
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"demo!"];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void) getRemoteConfigValueForKey:(CDVInvokedUrlCommand*)command
+{
+    NSString* key = [command.arguments objectAtIndex:0];
+    NSString* remoteConfigValue = [[Countly sharedInstance] remoteConfigValueForKey:key];
+
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:remoteConfigValue];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
